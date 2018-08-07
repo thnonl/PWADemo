@@ -26,7 +26,7 @@ namespace React_Redux.Controllers
             }
         }
 
-        [HttpPost]
+        [HttpPost("create")]
         public IActionResult Create(Product prod)
         {
             prod.CreatedOn = DateTime.Now;
