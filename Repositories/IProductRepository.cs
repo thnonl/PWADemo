@@ -6,7 +6,7 @@ using Microsoft.Azure.Documents;
 
 namespace React_Redux.Repositories
 {
-    public interface IDocumentDBRepository<T> where T : class
+    public interface IProductRepository<T> where T : class
     {
         Task<Document> CreateItemAsync(T item);
         Task DeleteItemAsync(string id);

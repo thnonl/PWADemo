@@ -8,18 +8,17 @@
     using Microsoft.Azure.Documents;
     using Microsoft.Azure.Documents.Client;
     using Microsoft.Azure.Documents.Linq;
+    using React_Redux.Helper;
 
-    
-    public class DocumentDBRepository<T> : IDocumentDBRepository<T> where T : class
+    public class ProductRepository<T> : IProductRepository<T> where T : class
     {
-       
-        private readonly string Endpoint = "https://1f3aec3f-0ee0-4-231-b9ee.documents.azure.com:443/";
-        private readonly string Key = "id3JDL5zQprEIBe2AXLseIe1oZEdUOhcNyzV0KZRzlcEHXxDjHlljXu5CjVLVOonEluZY4cq00XzBbQ8EnM1aA==";
-        private readonly string DatabaseId = "PWADemo";
+        private readonly string Endpoint = Constants.Server.EndPoint;
+        private readonly string Key = Constants.Server.Key;
+        private readonly string DatabaseId = Constants.Server.DatabaseId;
         private readonly string CollectionId = "Product";
         private DocumentClient client;
 
-        public DocumentDBRepository()
+        public ProductRepository()
         {
             this.client = new DocumentClient(new Uri(Endpoint), Key);
             CreateDatabaseIfNotExistsAsync().Wait();

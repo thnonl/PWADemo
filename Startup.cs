@@ -39,7 +39,8 @@ namespace React_Redux
                 configuration.RootPath = "ClientApp/build";
             });
 
-            services.AddSingleton<IDocumentDBRepository<React_Redux.Models.Product>>(new DocumentDBRepository<React_Redux.Models.Product>());
+            services.AddSingleton<IProductRepository<Product>>(new ProductRepository<Product>());
+            services.AddSingleton<IUserRepository<User>>(new UserRepository<User>());
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.

@@ -11,8 +11,8 @@ namespace React_Redux.Controllers
     [Route("api/[controller]")]
     public class ProductsController : Controller
     {
-         private readonly IDocumentDBRepository<Product> _respository;
-        public ProductsController (IDocumentDBRepository<Product> respository)
+        private readonly IProductRepository<Product> _respository;
+        public ProductsController (IProductRepository<Product> respository)
         {
              this._respository = respository;
         }
@@ -47,7 +47,7 @@ namespace React_Redux.Controllers
         [HttpGet]
         public async Task<ActionResult<List<Product>>> GetAll()
         {
-            var products = await _respository.GetItemsAsync(p => p.CreatedOn <= DateTime.Now);
+            var products = await _respository.GetItemsAsync(p => p != null);
             return products.ToList();
         }
 
