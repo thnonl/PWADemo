@@ -1,45 +1,35 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using React_Redux.Models;
+using React_Redux.Repositories;
 
 namespace React_Redux.Controllers
 {
     [Route("api/[controller]")]
     public class ProductsController : Controller
     {
-         private readonly AppDBContext _context;
-        public ProductsController (AppDBContext context)
+         private readonly IDocumentDBRepository<Product> _respository;
+        public ProductsController (IDocumentDBRepository<Product> respository)
         {
-            _context = context;
-
-            if (_context.Products.Count() == 0)
-            {
-                _context.Products.Add(new Product{
-                    Title = "Tested product",
-                    Description = "Tested Description",
-                    Price = 100,
-                    CreatedOn = DateTime.Now
-                });
-                _context.SaveChanges();
-            }
+             this._respository = respository;
         }
 
         [HttpPost("create")]
-        public IActionResult Create(Product prod)
+        public async Task<ActionResult> Create(Product prod)
         {
             prod.CreatedOn = DateTime.Now;
-            _context.Products.Add(prod);
-            _context.SaveChanges();
+            await _respository.CreateItemAsync(prod);
 
-            return CreatedAtAction("GetById", new Product{ProductId = prod.ProductId});
+            return NoContent();
         }
 
-        [HttpPut("{id}")]
-        public IActionResult Update(int productId, Product prod)
+        [HttpPut("{productId}")]
+        public async Task<ActionResult> Update(string productId, Product prod)
         {
-            var product = _context.Products.Find(productId);
+            var product = await _respository.GetItemAsync(productId);
             if (product == null)
             {
                 return NotFound();
@@ -50,37 +40,31 @@ namespace React_Redux.Controllers
             product.Price = prod.Price;
             product.UpdatedOn = DateTime.Now;
 
-            _context.Products.Update(product);
-            _context.SaveChanges();
+            await _respository.UpdateItemAsync(productId, product);
             return NoContent();
         }
 
         [HttpGet]
-        public ActionResult<List<Product>> GetAll()
+        public async Task<ActionResult<List<Product>>> GetAll()
         {
-            return _context.Products.ToList();
+            var products = await _respository.GetItemsAsync(p => p.CreatedOn <= DateTime.Now);
+            return products.ToList();
         }
 
         [HttpGet("{productId}")]
-        public ActionResult<Product> GetById(int productId)
+        public async Task<ActionResult<Product>> GetById(string productId)
         {
-            var product = _context.Products.Find(productId);
+            var product = await _respository.GetItemAsync(productId);
             if (product != null) {
                 return product;
             }
             return NotFound();
         }
 
-        [HttpDelete("{id}")]
-        public IActionResult Delete (int productId)
+        [HttpDelete("{productId}")]
+        public IActionResult Delete (string productId)
         {
-            var prod = _context.Products.Find(productId);
-            if (prod == null)
-            {
-                return NotFound();
-            }
-            _context.Products.Remove(prod);
-            _context.SaveChanges();
+            _respository.DeleteItemAsync(productId);
             return NoContent();
         }
     }

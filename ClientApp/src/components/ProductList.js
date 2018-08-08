@@ -10,6 +10,7 @@ class ProductList extends Component {
   constructor () {
     super()
     this.handleSubmit = this.handleSubmit.bind(this)
+    this.getProduct = this.getProduct.bind(this)
   }
 
   componentWillMount () {
@@ -27,6 +28,15 @@ class ProductList extends Component {
     event.preventDefault()
   }
 
+  getProduct (event) {
+    this.props.getProduct(event.target.text)
+    event.preventDefault()
+  }
+
+  deleteProduct (id) {
+    this.props.deleteProduct(id);
+  }
+
   render () {
     return (
       <div>
@@ -40,11 +50,16 @@ class ProductList extends Component {
             <Row>
               <Col sm={5} smOffset={3}>
               <BorderForm>
+                <FormControl type='hidden' name='id' />
                 <FormGroup>
                   <ControlLabel>
                     Title
                   </ControlLabel>
-                  <FormControl type='text' name='title' placeholder='Enter title' />
+                  <FormControl
+                    type='text'
+                    required={true}
+                    name='title'
+                    placeholder='Enter title' />
                 </FormGroup>
                 <FormGroup>
                   <ControlLabel>
@@ -66,64 +81,65 @@ class ProductList extends Component {
             </Row>
           </Grid>
         </form>
-        {renderProductTable(this.props)}
+        <table className='table'>
+          <thead>
+            <tr>
+              <th>
+                Product Id
+              </th>
+              <th>
+                Title
+              </th>
+              <th>
+                Description
+              </th>
+              <th>
+                Price
+              </th>
+              <th>
+                Created On
+              </th>
+              <th>
+                Updated At
+              </th>
+              <th>
+                Action
+              </th>
+            </tr>
+          </thead>
+          <tbody>
+            {this.props.products.map(prod => <tr key={prod.id}>
+                                               <td>
+                                                 {prod.id}
+                                               </td>
+                                               <td>
+                                                 {prod.title}
+                                               </td>
+                                               <td>
+                                                 {prod.description}
+                                               </td>
+                                               <td>
+                                                 {prod.price}
+                                               </td>
+                                               <td>
+                                                 {(new Date(prod.createdOn)).toLocaleDateString()}
+                                               </td>
+                                               <td>
+                                                 {prod.updatedAt ? (new Date(prod.updatedAt)).toLocaleDateString() : ''}
+                                               </td>
+                                               <td>
+                                                 <Button onClick={() => this.deleteProduct(prod.id)}>
+                                                   Delete
+                                                 </Button>
+                                               </td>
+                                             </tr>
+             )}
+          </tbody>
+        </table>
         {renderPagination(this.props)}
       </div>
     )
   }
-}
-
-function renderProductTable (props) {
-  console.log(props.products)
-  return (
-    <table className='table'>
-      <thead>
-        <tr>
-          <th>
-            Product Id
-          </th>
-          <th>
-            Title
-          </th>
-          <th>
-            Description
-          </th>
-          <th>
-            Price
-          </th>
-          <th>
-            Created On
-          </th>
-          <th>
-            Updated At
-          </th>
-        </tr>
-      </thead>
-      <tbody>
-        {props.products.map(prod => <tr key={prod.productId}>
-                                      <td>
-                                        {prod.productId}
-                                      </td>
-                                      <td>
-                                        {prod.title}
-                                      </td>
-                                      <td>
-                                        {prod.description}
-                                      </td>
-                                      <td>
-                                        {prod.price}
-                                      </td>
-                                      <td>
-                                        {prod.createdOn}
-                                      </td>
-                                      <td>
-                                        {prod.updatedAt}
-                                      </td>
-                                    </tr>
-         )}
-      </tbody>
-    </table>
-  )
 }
 
 function renderPagination (props) {
@@ -136,7 +152,7 @@ function renderPagination (props) {
 
 const BorderForm =
 styled.div`
-          margin-bottom: 20px;
+          margin-bottom: 20px
         `
 
 export default connect(
