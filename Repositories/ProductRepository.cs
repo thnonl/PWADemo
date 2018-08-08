@@ -8,114 +8,49 @@
     using Microsoft.Azure.Documents;
     using Microsoft.Azure.Documents.Client;
     using Microsoft.Azure.Documents.Linq;
+    using MongoDB.Bson;
+    using MongoDB.Driver;
+    using MongoDB.Driver.Builders;
     using React_Redux.Helper;
+    using React_Redux.Models;
 
-    public class ProductRepository<T> : IProductRepository<T> where T : class
+    public class ProductRepository<T> : IProductRepository<T>
     {
-        private readonly string Endpoint = Constants.Server.EndPoint;
-        private readonly string Key = Constants.Server.Key;
-        private readonly string DatabaseId = Constants.Server.DatabaseId;
-        private readonly string CollectionId = "Product";
-        private DocumentClient client;
+        MongoClient _client;
+        IMongoDatabase _db;
 
         public ProductRepository()
         {
-            this.client = new DocumentClient(new Uri(Endpoint), Key);
-            CreateDatabaseIfNotExistsAsync().Wait();
-            CreateCollectionIfNotExistsAsync().Wait();
+            _client = new MongoClient($"mongodb://{Constants.Server.Username}:{Constants.Server.Password}@{Constants.Server.Url}");
+            _db = _client.GetDatabase("pwasimpleapp");
         }
 
-        public async Task<T> GetItemAsync(string id)
+        public IQueryable<Product> Gets()
         {
-            try
-            {
-                Document document = await client.ReadDocumentAsync(UriFactory.CreateDocumentUri(DatabaseId, CollectionId, id));
-                return (T)(dynamic)document;
-            }
-            catch (DocumentClientException e)
-            {
-                if (e.StatusCode == System.Net.HttpStatusCode.NotFound)
-                {
-                    return null;
-                }
-                else
-                {
-                    throw;
-                }
-            }
+            return _db.GetCollection<Product>(nameof(Product)).AsQueryable();
         }
-
-        public async Task<IEnumerable<T>> GetItemsAsync(Expression<Func<T, bool>> predicate)
+ 
+        public Product GetProduct(ObjectId id)
         {
-            IDocumentQuery<T> query = client.CreateDocumentQuery<T>(
-                UriFactory.CreateDocumentCollectionUri(DatabaseId, CollectionId),
-                new FeedOptions { MaxItemCount = -1 })
-                .Where(predicate)
-                .AsDocumentQuery();
-
-            List<T> results = new List<T>();
-            while (query.HasMoreResults)
-            {
-                results.AddRange(await query.ExecuteNextAsync<T>());
-            }
-
-            return results;
+            return _db.GetCollection<Product>(nameof(Product)).AsQueryable().FirstOrDefault(p => p.Id == id);
         }
-
-        public async Task<Document> CreateItemAsync(T item)
+ 
+        public Product Create(Product p)
         {
-            return await client.CreateDocumentAsync(UriFactory.CreateDocumentCollectionUri(DatabaseId, CollectionId), item);
+            _db.GetCollection<Product>(nameof(Product)).InsertOne(p);
+            return p;
         }
-
-        public async Task<Document> UpdateItemAsync(string id, T item)
+ 
+        public void Update(ObjectId id, Product p)
         {
-            return await client.ReplaceDocumentAsync(UriFactory.CreateDocumentUri(DatabaseId, CollectionId, id), item);
+            p.Id = id;
+            var res = Query<Product>.EQ(pd => pd.Id, id).ToBsonDocument();
+            _db.GetCollection<Product>(nameof(Product)).ReplaceOne(res, p);
         }
-
-        public async Task DeleteItemAsync(string id)
+        public void Remove(ObjectId id)
         {
-            await client.DeleteDocumentAsync(UriFactory.CreateDocumentUri(DatabaseId, CollectionId, id));
-        }
-
-        private async Task CreateDatabaseIfNotExistsAsync()
-        {
-            try
-            {
-                await client.ReadDatabaseAsync(UriFactory.CreateDatabaseUri(DatabaseId));
-            }
-            catch (DocumentClientException e)
-            {
-                if (e.StatusCode == System.Net.HttpStatusCode.NotFound)
-                {
-                    await client.CreateDatabaseAsync(new Database { Id = DatabaseId });
-                }
-                else
-                {
-                    throw;
-                }
-            }
-        }
-
-        private async Task CreateCollectionIfNotExistsAsync()
-        {
-            try
-            {
-                await client.ReadDocumentCollectionAsync(UriFactory.CreateDocumentCollectionUri(DatabaseId, CollectionId));
-            }
-            catch (DocumentClientException e)
-            {
-                if (e.StatusCode == System.Net.HttpStatusCode.NotFound)
-                {
-                    await client.CreateDocumentCollectionAsync(
-                        UriFactory.CreateDatabaseUri(DatabaseId),
-                        new DocumentCollection { Id = CollectionId },
-                        new RequestOptions { OfferThroughput = 1000 });
-                }
-                else
-                {
-                    throw;
-                }
-            }
+            var res = Query<Product>.EQ(e => e.Id, id).ToBsonDocument();
+            var operation = _db.GetCollection<Product>("Products").DeleteOne(res);
         }
     }
 }

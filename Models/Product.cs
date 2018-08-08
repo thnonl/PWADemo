@@ -1,27 +1,28 @@
 using System;
 using System.ComponentModel.DataAnnotations;
 using Newtonsoft.Json;
+using MongoDB.Bson;
+using MongoDB.Bson.Serialization.Attributes;
 
 namespace React_Redux.Models
 {
     public class Product
     {
-        [JsonProperty(PropertyName = "id")]
-        public string Id { get; set; }
+        public ObjectId Id { get; set; }
 
-        [JsonProperty(PropertyName = "title")]
+        [BsonElement("Title")]
         public string Title { get; set; }
 
-        [JsonProperty(PropertyName = "description")]
+        [BsonElement("Description")]
         public string Description { get; set; }
         
-        [JsonProperty(PropertyName = "price")]
+        [BsonElement("Price")]
         public double Price { get; set; }
 
-        [JsonProperty(PropertyName = "createdOn")]
+        [BsonElement("CreatedOn")]
         public DateTime CreatedOn { get; set; }
         
-        [JsonProperty(PropertyName = "updatedOn")]
+        [BsonElement("UpdatedOn")]
         public DateTime? UpdatedOn { get; set; }
     }
 }

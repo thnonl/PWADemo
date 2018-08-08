@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
+using MongoDB.Bson;
 using React_Redux.Models;
 using React_Redux.Repositories;
 
@@ -18,43 +19,34 @@ namespace React_Redux.Controllers
         }
 
         [HttpPost("create")]
-        public async Task<ActionResult> Create(Product prod)
+        public ActionResult Create(Product prod)
         {
             prod.CreatedOn = DateTime.Now;
-            await _respository.CreateItemAsync(prod);
+            _respository.Create(prod);
 
             return NoContent();
         }
 
         [HttpPut("{productId}")]
-        public async Task<ActionResult> Update(string productId, Product prod)
+        public ActionResult Update(ObjectId productId, Product prod)
         {
-            var product = await _respository.GetItemAsync(productId);
-            if (product == null)
-            {
-                return NotFound();
-            }
+            prod.Id = productId;
 
-            product.Title = prod.Title;
-            product.Description = prod.Description;
-            product.Price = prod.Price;
-            product.UpdatedOn = DateTime.Now;
-
-            await _respository.UpdateItemAsync(productId, product);
+            _respository.Update(productId, prod);
             return NoContent();
         }
 
         [HttpGet]
-        public async Task<ActionResult<List<Product>>> GetAll()
+        public ActionResult<List<Product>> GetAll()
         {
-            var products = await _respository.GetItemsAsync(p => p != null);
+            var products = _respository.Gets();
             return products.ToList();
         }
 
         [HttpGet("{productId}")]
-        public async Task<ActionResult<Product>> GetById(string productId)
+        public ActionResult<Product> GetById(ObjectId productId)
         {
-            var product = await _respository.GetItemAsync(productId);
+            var product = _respository.GetProduct(productId);
             if (product != null) {
                 return product;
             }
@@ -62,9 +54,9 @@ namespace React_Redux.Controllers
         }
 
         [HttpDelete("{productId}")]
-        public IActionResult Delete (string productId)
+        public IActionResult Delete (ObjectId productId)
         {
-            _respository.DeleteItemAsync(productId);
+            _respository.Remove(productId);
             return NoContent();
         }
     }

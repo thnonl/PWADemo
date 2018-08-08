@@ -40,7 +40,6 @@ namespace React_Redux
             });
 
             services.AddSingleton<IProductRepository<Product>>(new ProductRepository<Product>());
-            services.AddSingleton<IUserRepository<User>>(new UserRepository<User>());
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
