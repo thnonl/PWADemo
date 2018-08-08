@@ -27,12 +27,12 @@ namespace React_Redux.Controllers
             return NoContent();
         }
 
-        [HttpPut("{productId}")]
-        public ActionResult Update(ObjectId productId, Product prod)
+        [HttpPut("{productId:length(24)}")]
+        public ActionResult Update(string productId, Product prod)
         {
-            prod.Id = productId;
+            prod.Id = new ObjectId(productId);
 
-            _respository.Update(productId, prod);
+            _respository.Update(prod.Id, prod);
             return NoContent();
         }
 
@@ -43,20 +43,20 @@ namespace React_Redux.Controllers
             return products.ToList();
         }
 
-        [HttpGet("{productId}")]
-        public ActionResult<Product> GetById(ObjectId productId)
+        [HttpGet("{productId:length(24)}")]
+        public ActionResult<Product> GetById(string productId)
         {
-            var product = _respository.GetProduct(productId);
+            var product = _respository.GetProduct(new ObjectId(productId));
             if (product != null) {
                 return product;
             }
             return NotFound();
         }
 
-        [HttpDelete("{productId}")]
-        public IActionResult Delete (ObjectId productId)
+        [HttpDelete("{productId:length(24)}")]
+        public IActionResult Delete (string productId)
         {
-            _respository.Remove(productId);
+            _respository.Remove(new ObjectId(productId));
             return NoContent();
         }
     }
